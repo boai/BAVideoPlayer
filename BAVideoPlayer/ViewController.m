@@ -139,7 +139,6 @@ NSString * const url4 = @"https://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
         make.height.mas_equalTo(30);
         make.width.mas_equalTo(30);
         make.top.equalTo(_playerView).with.offset(20);
-        
     }];
     [[UIApplication sharedApplication].keyWindow addSubview:_playerView];
     _playerView.fullScreenBtn.selected = YES;
