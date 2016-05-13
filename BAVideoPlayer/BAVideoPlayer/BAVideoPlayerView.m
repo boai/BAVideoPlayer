@@ -1,16 +1,86 @@
-//
-//  BAVideoPlayerView.m
-//  BAVideoPlayer
-//
-//  Created by 博爱之家 on 16/5/13.
-//  Copyright © 2016年 博爱之家. All rights reserved.
-//
 
+/*!
+ *  @header BAKit.h
+ *          BABaseProject
+ *
+ *  @brief  BAKit
+ *
+ *  @author 博爱
+ *  @copyright    Copyright © 2016年 博爱. All rights reserved.
+ *  @version    V1.0
+ */
+
+//                            _ooOoo_
+//                           o8888888o
+//                           88" . "88
+//                           (| -_- |)
+//                            O\ = /O
+//                        ____/`---'\____
+//                      .   ' \\| |// `.
+//                       / \\||| : |||// \
+//                     / _||||| -:- |||||- \
+//                       | | \\\ - /// | |
+//                     | \_| ''\---/'' | |
+//                      \ .-\__ `-` ___/-. /
+//                   ___`. .' /--.--\ `. . __
+//                ."" '< `.___\_<|>_/___.' >'"".
+//               | | : `- \`.;`\ _ /`;.`/ - ` : | |
+//                 \ \ `-. \_ __\ /__ _/ .-` / /
+//         ======`-.____`-.___\_____/___.-`____.-'======
+//                            `=---='
+//
+//         .............................................
+//                  佛祖镇楼                  BUG辟易
+//          佛曰:
+//                  写字楼里写字间，写字间里程序员；
+//                  程序人员写程序，又拿程序换酒钱。
+//                  酒醒只在网上坐，酒醉还来网下眠；
+//                  酒醉酒醒日复日，网上网下年复年。
+//                  但愿老死电脑间，不愿鞠躬老板前；
+//                  奔驰宝马贵者趣，公交自行程序员。
+//                  别人笑我忒疯癫，我笑自己命太贱；
+//                  不见满街漂亮妹，哪个归得程序员？
+
+/*
+ 
+ *********************************************************************************
+ *
+ * 在使用BAKit的过程中如果出现bug请及时以以下任意一种方式联系我，我会及时修复bug
+ *
+ * QQ     : 可以添加SDAutoLayout群 497140713 在这里找到我(博爱1616【137361770】)
+ * 微博    : 博爱1616
+ * Email  : 137361770@qq.com
+ * GitHub : https://github.com/boai
+ * 博客园  : http://www.cnblogs.com/boai/
+ * 博客    : http://boai.github.io
+ 
+ *********************************************************************************
+ 
+ */
 
 #import "BAVideoPlayerView.h"
 #import "BAPlayer.h"
 
 @interface BAVideoPlayerView ()
+<
+    UIGestureRecognizerDelegate
+>
+{
+    CGRect BA_selfFrame;
+    NSDateFormatter *_dateFormatter;
+    BOOL _played;//播放状态
+    BOOL _isLockScreen;//是否锁屏
+    //长按手势起点
+    CGPoint longPressBeginPoint;
+    //长按手势移动是的位置  包括运动中和结束点
+    CGPoint longPressMovePoint;
+    NSArray *_screenType;
+    NSInteger _index ;
+    float _btnHeight;
+    CGFloat _cachDuration;
+    CGFloat _playerVolume;//播放的声音
+    CGFloat _lastPanLocation;
+}
 
 /** 开始播放按钮 */
 @property (nonatomic, strong) UIButton                 *playOrPauseBtn;
@@ -40,6 +110,9 @@
 
 @property (nonatomic,strong ) NSTimer                  *playViewTimer;
 
+@property (nonatomic,strong ) UITapGestureRecognizer   *playViewSingleTap;
+@property (nonatomic,strong ) UITapGestureRecognizer   *playviewDoubleTap;
+@property (nonatomic,strong ) MPVolumeView             *volumeView;
 
 
 @end
@@ -51,6 +124,7 @@
 {
     if (self = [super initWithFrame:frame])
     {
+        BA_selfFrame = frame;
         self.videoURL = [NSURL URLWithString:urlString];
         _playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
         [self.layer addSublayer:self.playerLayer];
@@ -81,6 +155,9 @@
     [self addSubview:self.activity];
     [self addSubview:self.repeatBtn];
     [self addSubview:self.horizontalLabel];
+    
+    /*! 添加手势 */
+    [self addGestures];
     
     // 添加子控件的约束
     [self makeSubViewsConstraints];
@@ -317,6 +394,26 @@
     return _playerLayer;
 }
 
+- (UITapGestureRecognizer *)playViewSingleTap
+{
+    if (!_playViewSingleTap)
+    {
+        _playViewSingleTap = [[UITapGestureRecognizer alloc] init];
+        _playViewSingleTap.delegate = self;
+    }
+    return _playViewSingleTap;
+}
+
+- (UITapGestureRecognizer *)playviewDoubleTap
+{
+    if (!_playviewDoubleTap)
+    {
+        _playviewDoubleTap = [[UITapGestureRecognizer alloc] init];
+        _playviewDoubleTap.numberOfTapsRequired = 2;
+        _playviewDoubleTap.delegate = self;
+    }
+    return _playviewDoubleTap;
+}
 
 #pragma mark - ***** 通知以及点击事件
 - (void)addNotifications
@@ -333,6 +430,145 @@
     /*! app进入前台 */
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidEnterPlayGround) name:UIApplicationDidBecomeActiveNotification object:nil];
     
+
+
+}
+
+#pragma mark - ***** 添加手势
+- (void)addGestures
+{
+    //添加声音控制器
+    self.volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(-2000,-1000, BA_SCREEN_WIDTH, 100)];
+    self.volumeView.hidden = YES;
+    [self addSubview:self.volumeView];
+    
+    [self addGestureRecognizer:self.playViewSingleTap];
+    [self addGestureRecognizer:self.playviewDoubleTap];
+    /*! 单击手势 */
+    [self.playViewSingleTap addTarget:self action:@selector(playerSingleTap:)];
+    /*! 双击手势 */
+    [self.playviewDoubleTap addTarget:self action:@selector(playerDoubleTap)];
+    
+    
+    //滑动手势 拖动手势
+    UISwipeGestureRecognizer *leftSwipeGesture = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeGestureChangeProgress:)];
+    leftSwipeGesture.direction = UISwipeGestureRecognizerDirectionLeft;
+    UISwipeGestureRecognizer *rightSwipeGesture = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeGestureChangeProgress:)];
+    rightSwipeGesture.direction = UISwipeGestureRecognizerDirectionRight;
+    UIPanGestureRecognizer *movePanGesture = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(movePanGestureRecognizer:)];
+    [movePanGesture requireGestureRecognizerToFail:leftSwipeGesture];
+    [movePanGesture requireGestureRecognizerToFail:rightSwipeGesture];
+    [self.playViewSingleTap requireGestureRecognizerToFail:self.playviewDoubleTap]; //防止：双击被单击拦截
+    [self addGestureRecognizer:leftSwipeGesture];
+    [self addGestureRecognizer:rightSwipeGesture];
+    [self addGestureRecognizer:movePanGesture];
+}
+
+#pragma mark - ***** 响应手势
+#pragma mark 拖动手势控制音量和亮度
+- (void)swipeGestureChangeProgress:(UISwipeGestureRecognizer *)swipeGesture{
+    
+    __weak typeof(self) weakSelf = self;
+    switch (swipeGesture.direction) {
+            //right 1
+        case UISwipeGestureRecognizerDirectionRight:
+        {
+            
+            [self.player pause];
+            CMTime currenTime = self.playerItem.currentTime;
+            CGFloat currenSecond = (CGFloat)currenTime.value/currenTime.timescale;
+            CGFloat reachSecond = MIN(_cachDuration, currenSecond+7.0);
+            [weakSelf.player pause];
+            [self.playerItem seekToTime:CMTimeMake(reachSecond, 1)  completionHandler:^(BOOL finished) {
+                [weakSelf.player play];
+                //                CMTime currenTime = self.playerItem.currentTime;
+                //                CGFloat currenSecond = (CGFloat)currenTime.value/currenTime.timescale;
+                
+            }];
+        }
+            break;
+            //left 2
+        case UISwipeGestureRecognizerDirectionLeft:
+        {
+            CMTime currenTime = self.playerItem.currentTime;
+            CGFloat currenSecond = (CGFloat)currenTime.value/currenTime.timescale;
+            
+            NSLog(@"  left1 currenSecond :%f cach :%f",currenSecond,_cachDuration);
+            if (currenSecond>7.0) {
+                [weakSelf.player pause];
+                [self.playerItem seekToTime:CMTimeMake((currenSecond-7.0), 1)  completionHandler:^(BOOL finished)
+                 {
+                     [weakSelf.player play];
+                     NSLog(@"  left2 currenSecond :%f cach :%f",currenSecond,_cachDuration);
+                 }];
+            }
+            
+        }
+            break;
+        default:
+            break;
+    }
+    
+}
+
+#pragma mark 拖动手势控制音量和亮度
+- (void)movePanGestureRecognizer:(UIPanGestureRecognizer*)panGesture
+{
+    CGFloat bright = [UIScreen mainScreen].brightness;
+    _playerVolume = 0;
+    if (panGesture.state==UIGestureRecognizerStateBegan)
+    {
+        longPressBeginPoint = [panGesture locationInView:self];
+    }
+    else
+    {
+        longPressMovePoint = [panGesture locationInView:self];
+    }
+    
+    if ([panGesture locationInView:self].x > BA_SCREEN_WIDTH/2)
+    {
+        //调节声音
+        UISlider* volumeViewSlider = nil;
+        for (UIView *view in [self.volumeView subviews])
+        {
+            if ([view.class.description isEqualToString:@"MPVolumeSlider"])
+            {
+                volumeViewSlider = (UISlider*)view;
+                break;
+            }
+        }
+        _playerVolume += (longPressBeginPoint.y-longPressMovePoint.y)/(BA_selfFrame.size.height * 3);
+        volumeViewSlider.value += _playerVolume;
+        NSLog(@"声音调节 %ld--volume:%f",panGesture.state,volumeViewSlider.value);
+    }
+    else
+    {
+        bright+= (longPressBeginPoint.y-longPressMovePoint.y)/(self.frame.size.height * 3);
+        [[UIScreen mainScreen] setBrightness: bright];
+    }
+}
+/**
+ *  双击
+ */
+- (void)playerDoubleTap
+{
+    if (self.isPlaying)
+    {
+        [self pause];
+    }
+    else
+    {
+        [self play];
+    }
+}
+
+/**
+ *  单击事件 ->显示控制条 启动定时器隐藏控制条
+ */
+
+- (void)playerSingleTap:(UITapGestureRecognizer *)gesture
+{
+    NSLog(@"playerSingleTap");
 }
 
 #pragma mark - ***** 点击事件
@@ -344,9 +580,24 @@
     {
         self.goBackBlock();
     }
+    /*! 设置竖屏 */
+    [UIDevice setOrientation:UIInterfaceOrientationPortrait];
 }
 
 #pragma mark 全屏按钮点击事件
+- (void)fullScreenAction:(UIButton *)sender
+{
+    sender.selected = !sender.selected;
+    if (sender.selected)
+    {
+        [self play];
+    }
+    else
+    {
+        [self pause];
+    };
+
+}
 
 #pragma mark 播放暂停按钮
 - (void)playPauseBtnAction:(UIButton *)sender
@@ -388,12 +639,16 @@
 - (void)play
 {
     [self.player play];
+    self.playOrPauseBtn.selected = YES;
+    self.isPlaying = YES;
 }
 
 /*! 播放并判断是否重新加载当前url资源 */
 -(void)pause
 {
     [self.player pause];
+    self.playOrPauseBtn.selected = NO;
+    self.isPlaying = NO;
 }
 
 /*! 关闭播放器并销毁当前播放view, 一定要在退出时使用,否则内存可能释放不了 */
@@ -446,7 +701,7 @@
 #pragma mark - ***** dealloc
 - (void)dealloc
 {
-
+    [BA_Noti removeObserver:self];
     NSLog(@"BAVideoPlayer 销毁了！");
 }
 

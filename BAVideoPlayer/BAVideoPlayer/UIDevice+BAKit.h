@@ -58,47 +58,13 @@
  
  */
 
+#import <UIKit/UIKit.h>
 
-#ifndef BAPlayer_h
-#define BAPlayer_h
+@interface UIDevice (BAKit)
+/**
+ *  强制旋转设备
+ *  @param  旋转方向
+ */
++ (void)setOrientation:(UIInterfaceOrientation)orientation;
 
-#pragma mark - ***** 头文件
-#import "Masonry.h"
-#import "BAVideoPlayerView.h"
-#import "UIDevice+BAKit.h"
-
-
-
-#pragma mark - ***** 宏定义
-/*! 当前设备的屏幕宽度 */
-#define BA_SCREEN_WIDTH    [[UIScreen mainScreen] bounds].size.width
-/*! 当前设备的屏幕高度 */
-#define BA_SCREEN_HEIGHT   [[UIScreen mainScreen] bounds].size.height
-
-#define BA_HalfWidth       self.frame.size.width * 0.5
-#define BA_HalfHeight      self.frame.size.height * 0.5
-
-
-/*! 通知 */
-#define BA_Noti [NSNotificationCenter defaultCenter]
-/*! 上下导航栏高(全屏时上导航栏高+20) */
-#define BATOPHEIGHT(FullScreen) ((FullScreen==YES)?60:40)
-#define BAFOOTHEIGHT 40
-
-/*! 导航栏上button的宽高 */
-#define BAButtonWidth 30
-#define BAButtonHeight 30
-
-/*! 导航栏隐藏前所需等待时间 */
-#define BAHideBarIntervalTime 3
-
-/*! 图片路径 */
-#define BA_VideoSrcName(file) [@"BAVideoPlayer.bundle" stringByAppendingPathComponent:file]
-#define BA_VideoFrameworkSrcName(file) [@"Frameworks/BAVideoPlayer.framework/BAVideoPlayer.bundle" stringByAppendingPathComponent:file]
-
-
-
-
-
-
-#endif /* BAPlayer_h */
+@end

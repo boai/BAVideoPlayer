@@ -25,6 +25,7 @@
 		C4C6CDA91CE6211300F281F2 /* NSLayoutConstraint+MASDebugAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C4C6CD9A1CE6211300F281F2 /* NSLayoutConstraint+MASDebugAdditions.m */; };
 		C4C6CDAA1CE6211300F281F2 /* View+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C4C6CD9C1CE6211300F281F2 /* View+MASAdditions.m */; };
 		C4C6CDAB1CE6211300F281F2 /* ViewController+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C4C6CD9F1CE6211300F281F2 /* ViewController+MASAdditions.m */; };
+		C4C6CDAE1CE62E7A00F281F2 /* UIDevice+BAKit.m in Sources */ = {isa = PBXBuildFile; fileRef = C4C6CDAD1CE62E7A00F281F2 /* UIDevice+BAKit.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,6 +68,8 @@
 		C4C6CD9D1CE6211300F281F2 /* View+MASShorthandAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "View+MASShorthandAdditions.h"; sourceTree = "<group>"; };
 		C4C6CD9E1CE6211300F281F2 /* ViewController+MASAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ViewController+MASAdditions.h"; sourceTree = "<group>"; };
 		C4C6CD9F1CE6211300F281F2 /* ViewController+MASAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ViewController+MASAdditions.m"; sourceTree = "<group>"; };
+		C4C6CDAC1CE62E7A00F281F2 /* UIDevice+BAKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIDevice+BAKit.h"; sourceTree = "<group>"; };
+		C4C6CDAD1CE62E7A00F281F2 /* UIDevice+BAKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIDevice+BAKit.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +132,8 @@
 				C4C6CD831CE6211300F281F2 /* BAVideoPlayer.bundle */,
 				C4C6CD841CE6211300F281F2 /* BAVideoPlayerView.h */,
 				C4C6CD851CE6211300F281F2 /* BAVideoPlayerView.m */,
+				C4C6CDAC1CE62E7A00F281F2 /* UIDevice+BAKit.h */,
+				C4C6CDAD1CE62E7A00F281F2 /* UIDevice+BAKit.m */,
 			);
 			path = BAVideoPlayer;
 			sourceTree = "<group>";
@@ -239,6 +244,7 @@
 				C4C6CDA41CE6211300F281F2 /* MASConstraintMaker.m in Sources */,
 				C4C6CD721CE620E300F281F2 /* ViewController.m in Sources */,
 				C4C6CDA11CE6211300F281F2 /* BAVideoPlayerView.m in Sources */,
+				C4C6CDAE1CE62E7A00F281F2 /* UIDevice+BAKit.m in Sources */,
 				C4C6CDA31CE6211300F281F2 /* MASConstraint.m in Sources */,
 				C4C6CDAB1CE6211300F281F2 /* ViewController+MASAdditions.m in Sources */,
 				C4C6CDA51CE6211300F281F2 /* MASLayoutConstraint.m in Sources */,
@@ -398,6 +404,7 @@
 				C4C6CD801CE620E300F281F2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
