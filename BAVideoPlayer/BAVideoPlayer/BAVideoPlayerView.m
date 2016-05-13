@@ -92,20 +92,13 @@
 @property (nonatomic, strong) UIProgressView           *progressView;
 /** 滑杆 */
 @property (nonatomic, strong) UISlider                 *progressSlider;
-/** 全屏按钮 */
-@property (nonatomic, strong) UIButton                 *fullScreenBtn;
 /** 快进快退label */
 @property (nonatomic, strong) UILabel                  *horizontalLabel;
 /** 系统菊花 */
 @property (nonatomic, strong) UIActivityIndicatorView  *activity;
-/** 返回按钮*/
-@property (nonatomic, strong) UIButton                 *backBtn;
 /** 重播按钮 */
 @property (nonatomic, strong) UIButton                 *repeatBtn;
-/** bottomView*/
-@property (nonatomic, strong) UIImageView              *bottomImageView;
-/** topView */
-@property (nonatomic, strong) UIImageView              *topImageView;
+
 
 
 @property (nonatomic,strong ) NSTimer                  *playViewTimer;
@@ -588,15 +581,9 @@
 - (void)fullScreenAction:(UIButton *)sender
 {
     sender.selected = !sender.selected;
-    if (sender.selected)
-    {
-        [self play];
-    }
-    else
-    {
-        [self pause];
-    };
 
+    /*! 用通知的形式把点击全屏的时间发送到app的任何地方，方便处理其他逻辑 */
+    [BA_Noti postNotificationName:BAPlayerFullScreenButtonClickedNotification object:sender];
 }
 
 #pragma mark 播放暂停按钮
@@ -651,12 +638,7 @@
     self.isPlaying = NO;
 }
 
-/*! 关闭播放器并销毁当前播放view, 一定要在退出时使用,否则内存可能释放不了 */
--(void)close
-{
-    
-    
-}
+
 
 #pragma mark - ***** 时间设置
 
@@ -701,11 +683,28 @@
 #pragma mark - ***** dealloc
 - (void)dealloc
 {
+    if (self.superview)
+    {
+        [self removeFromSuperview];
+    }
+    [self close];
     [BA_Noti removeObserver:self];
     NSLog(@"BAVideoPlayer 销毁了！");
 }
 
+/*! 关闭播放器并销毁当前播放view, 一定要在退出时使用,否则内存可能释放不了 */
+-(void)close
+{
 
+}
+
+#pragma mark 移除KVO监控
+- (void)removeObserver
+{
+    [_player.currentItem removeObserver:self forKeyPath:@"status"];
+    [_player.currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
+    [_player.currentItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
+}
 
 
 

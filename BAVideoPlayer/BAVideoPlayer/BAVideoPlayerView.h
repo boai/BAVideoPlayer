@@ -61,6 +61,15 @@
 
 #import <UIKit/UIKit.h>
 
+/*! 全屏按钮被点击的通知 */
+#define BAPlayerFullScreenButtonClickedNotification @"BAPlayerFullScreenButtonClickedNotification"
+
+/*! 关闭播放器的通知 */
+//#define BAPlayerClosedNotification @"BAPlayerClosedNotification"
+
+/*! 播放完成的通知 */
+#define BAPlayerFinishedPlayNotification @"BAPlayerFinishedPlayNotification"
+
 
 /*! 播放器的几种状态 */
 typedef NS_ENUM(NSInteger, BAPlayerState) {
@@ -83,10 +92,19 @@ typedef void(^BAPlayerGoBackBlock)(void);
 @property (nonatomic,strong ) AVPlayerLayer        *playerLayer;
 /** 视频URL */
 @property (nonatomic, strong) NSURL                *videoURL;
+/** 全屏按钮 */
+@property (nonatomic, strong) UIButton             *fullScreenBtn;
 @property (nonatomic, assign) BOOL                  isFullScreen;
+
+@property (nonatomic, assign) BOOL                  isPlaying;
+/** bottomView*/
+@property (nonatomic, strong) UIImageView          *bottomImageView;
+/** topView */
+@property (nonatomic, strong) UIImageView          *topImageView;
+/** 返回按钮*/
+@property (nonatomic, strong) UIButton             *backBtn;
 /*! 返回按钮Block */
 @property (nonatomic, copy  ) BAPlayerGoBackBlock   goBackBlock;
-@property (nonatomic, assign) BOOL                  isPlaying;
 
 
 

@@ -69,10 +69,30 @@ NSString * const url4 = @"https://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
 
 
 @interface ViewController ()
+{
+    BAVideoPlayerView *_playerView;
+    CGRect playerFrame;
+}
+
 
 @end
 
 @implementation ViewController
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    
+    // 注册播放完成通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fullScreenBtnClick:) name:BAPlayerFullScreenButtonClickedNotification object:nil];
+    // 旋转屏幕通知
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(onDeviceOrientationChange)
+                                                 name:UIDeviceOrientationDidChangeNotification
+                                               object:nil
+     ];
+
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -83,15 +103,138 @@ NSString * const url4 = @"https://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
 - (void)creatPlayer
 {
     CGRect frame = CGRectMake(0, 20, BA_SCREEN_WIDTH, 300);
-    BAVideoPlayerView *playerView = [[BAVideoPlayerView alloc] initWithFrame:frame WithUrlString:url3];
+    _playerView = [[BAVideoPlayerView alloc] initWithFrame:frame WithUrlString:url3];
     
-    [self.view addSubview:playerView];
+    [self.view addSubview:_playerView];
     
     __weak typeof(self) weakSelf = self;
-    playerView.goBackBlock = ^{
+    _playerView.goBackBlock = ^{
         [weakSelf.navigationController popViewControllerAnimated:YES];
     };
     
 }
+
+#pragma mark - ***** 通知
+- (void)toFullScreenWithInterfaceOrientation:(UIInterfaceOrientation )interfaceOrientation
+{
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    [_playerView removeFromSuperview];
+    _playerView.transform = CGAffineTransformIdentity;
+    if (interfaceOrientation==UIInterfaceOrientationLandscapeLeft) {
+        _playerView.transform = CGAffineTransformMakeRotation(-M_PI_2);
+    }else if(interfaceOrientation==UIInterfaceOrientationLandscapeRight){
+        _playerView.transform = CGAffineTransformMakeRotation(M_PI_2);
+    }
+    _playerView.frame = CGRectMake(0, 0, BA_SCREEN_WIDTH, BA_SCREEN_HEIGHT);
+    _playerView.playerLayer.frame =  CGRectMake(0,0, BA_SCREEN_HEIGHT,BA_SCREEN_WIDTH);
+    
+    [_playerView.bottomImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.height.mas_equalTo(40);
+        make.top.mas_equalTo(BA_SCREEN_WIDTH-40);
+        make.width.mas_equalTo(BA_SCREEN_HEIGHT);
+    }];
+    
+    [_playerView.backBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(_playerView).with.offset((- BA_SCREEN_HEIGHT/2));
+        make.height.mas_equalTo(30);
+        make.width.mas_equalTo(30);
+        make.top.equalTo(_playerView).with.offset(20);
+        
+    }];
+    [[UIApplication sharedApplication].keyWindow addSubview:_playerView];
+    _playerView.fullScreenBtn.selected = YES;
+    [_playerView bringSubviewToFront:_playerView.bottomImageView];
+    
+}
+
+- (void)toNormal
+{
+    [_playerView removeFromSuperview];
+    [UIView animateWithDuration:0.5f animations:^{
+        _playerView.transform = CGAffineTransformIdentity;
+        _playerView.frame =CGRectMake(playerFrame.origin.x, playerFrame.origin.y, playerFrame.size.width, playerFrame.size.height);
+        _playerView.playerLayer.frame =  _playerView.bounds;
+        [self.view addSubview:_playerView];
+        [_playerView.bottomImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(_playerView).with.offset(0);
+            make.right.equalTo(_playerView).with.offset(0);
+            make.height.mas_equalTo(40);
+            make.bottom.equalTo(_playerView).with.offset(0);
+        }];
+        [_playerView.backBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(_playerView).with.offset(5);
+            make.height.mas_equalTo(30);
+            make.width.mas_equalTo(30);
+            make.top.equalTo(_playerView).with.offset(20);
+        }];
+        
+    }completion:^(BOOL finished) {
+        _playerView.isFullScreen = NO;
+        [self setNeedsStatusBarAppearanceUpdate];
+        _playerView.fullScreenBtn.selected = NO;
+        
+    }];
+}
+
+- (void)fullScreenBtnClick:(NSNotification *)notice
+{
+    UIButton *fullScreenBtn = (UIButton *)[notice object];
+    if (fullScreenBtn.isSelected) {//全屏显示
+        _playerView.isFullScreen = YES;
+        [self setNeedsStatusBarAppearanceUpdate];
+        [self toFullScreenWithInterfaceOrientation:UIInterfaceOrientationLandscapeLeft];
+    }else{
+        [self toNormal];
+    }
+}
+
+
+#pragma mark 旋转屏幕通知
+- (void)onDeviceOrientationChange
+{
+    if (_playerView==nil || _playerView.superview==nil)
+    {
+        return;
+    }
+    
+    UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
+    UIInterfaceOrientation interfaceOrientation = (UIInterfaceOrientation)orientation;
+    switch (interfaceOrientation) {
+        case UIInterfaceOrientationPortraitUpsideDown:{
+            NSLog(@"第3个旋转方向---电池栏在下");
+        }
+            break;
+        case UIInterfaceOrientationPortrait:{
+            NSLog(@"第0个旋转方向---电池栏在上");
+            if (_playerView.isFullScreen) {
+                [self toNormal];
+            }
+        }
+            break;
+        case UIInterfaceOrientationLandscapeLeft:{
+            NSLog(@"第2个旋转方向---电池栏在左");
+            if (_playerView.isFullScreen == NO) {
+                _playerView.isFullScreen = YES;
+                [self setNeedsStatusBarAppearanceUpdate];
+                
+                [self toFullScreenWithInterfaceOrientation:interfaceOrientation];
+            }
+        }
+            break;
+        case UIInterfaceOrientationLandscapeRight:{
+            NSLog(@"第1个旋转方向---电池栏在右");
+            if (_playerView.isFullScreen == NO) {
+                _playerView.isFullScreen = YES;
+                [self setNeedsStatusBarAppearanceUpdate];
+                
+                [self toFullScreenWithInterfaceOrientation:interfaceOrientation];
+            }
+        }
+            break;
+        default:
+            break;
+    }
+}
+
 
 @end
