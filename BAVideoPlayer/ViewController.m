@@ -102,8 +102,8 @@ NSString * const url4 = @"https://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
 
 - (void)creatPlayer
 {
-    CGRect frame = CGRectMake(0, 20, BA_SCREEN_WIDTH, 300);
-    _playerView = [[BAVideoPlayerView alloc] initWithFrame:frame WithUrlString:url3];
+    playerFrame = CGRectMake(0, 20, BA_SCREEN_WIDTH, 300);
+    _playerView = [[BAVideoPlayerView alloc] initWithFrame:playerFrame WithUrlString:url3];
     
     [self.view addSubview:_playerView];
     
@@ -134,12 +134,12 @@ NSString * const url4 = @"https://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
         make.width.mas_equalTo(BA_SCREEN_HEIGHT);
     }];
     
-    [_playerView.backBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(_playerView).with.offset((- BA_SCREEN_HEIGHT/2));
-        make.height.mas_equalTo(30);
-        make.width.mas_equalTo(30);
-        make.top.equalTo(_playerView).with.offset(20);
+    [_playerView.topImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.height.mas_equalTo(40);
+        make.width.mas_equalTo(BA_SCREEN_HEIGHT);
+        make.top.mas_equalTo(_playerView);
     }];
+    
     [[UIApplication sharedApplication].keyWindow addSubview:_playerView];
     _playerView.fullScreenBtn.selected = YES;
     [_playerView bringSubviewToFront:_playerView.bottomImageView];
